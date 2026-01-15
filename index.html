@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Indicadores de Saúde • Relatório Personalizado</title>
+  <style>
+    :root{
+      --bg:#0b0f19; --card:#111827; --text:#e5e7eb; --muted:#9ca3af;
+      --border:rgba(255,255,255,.12);
+      --accent:#7c3aed; --accent2:#3b82f6;
+      --danger:#ef4444; --ok:#22c55e; --warn:#f59e0b;
+    }
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(124,58,237,.22), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(59,130,246,.18), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:24px;
+      display:grid;
+      place-items:start center;
+    }
+    .wrap{ width:min(980px, 100%); }
+    .header{
+      display:flex; justify-content:space-between; align-items:flex-end; gap:16px;
+      margin-bottom:14px;
+    }
+    .title h1{ margin:0; font-size:22px; }
+    .title p{ margin:6px 0 0; color:var(--muted); }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), transparent 30%), var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      margin-bottom:16px;
+    }
+
+    form{ display:grid; gap:14px; }
+    .grid{ display:grid; gap:14px; grid-template-columns:1fr; }
+    @media (min-width: 920px){ .grid{ grid-template-columns:1fr 1fr; } }
+
+    label{ display:grid; gap:6px; font-size:13px; color:var(--muted); }
+    input, select, textarea{
+      width:100%; box-sizing:border-box;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      outline:none;
+      transition:border .15s ease, box-shadow .15s ease;
+    }
+    textarea{ min-height:100px; resize:vertical; }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(124,58,237,.8);
+      box-shadow: 0 0 0 4px rgba(124,58,237,.18);
+    }
+
+    fieldset{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      background: rgba(255,255,255,.02);
+    }
+    legend{ padding:0 8px; color:var(--text); font-weight:700; font-size:14px; }
+
+    .options{ display:grid; gap:10px; margin-top:10px; }
+    .opt{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
+    }
+    .opt input{ margin-top:3px; }
+    .opt .t{ color:var(--text); font-size:14px; font-weight:650; }
+    .opt .d{ color:var(--muted); font-size:12px; margin-top:2px; }
+
+    .row{
+      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+
+    .btn{
+      border:0; border-radius:12px;
+      padding:12px 14px;
+      background: linear-gradient(90deg, rgba(124,58,237,1), rgba(59,130,246,1));
+      color:white; font-weight:800;
+      cursor:pointer;
+    }
+    .btn.secondary{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      font-weight:650;
+    }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+    .help{ color:var(--muted); font-size:12px; }
+
+    .error{ display:none; color:var(--danger); font-size:12px; margin-top:6px; }
+    .error.show{ display:block; }
+
+    .status{
+      display:none;
+      padding:12px; border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      font-size:14px;
+    }
+    .status.ok{ border-color: rgba(34,197,94,.35); }
+    .status.bad{ border-color: rgba(239,68,68,.35); }
+
+    .results{
+      display:none;
+      gap:14px;
+    }
+    .cards{
+      display:grid; gap:14px;
+      grid-template-columns:1fr;
+    }
+    @media (min-width: 920px){ .cards{ grid-template-columns:1fr 1fr 1fr; } }
+
+    .metric{
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+    .metric .k{ color:var(--muted); font-size:12px; }
+    .metric .v{ font-size:22px; font-weight:850; margin-top:6px; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      margin-top:8px;
+      color: var(--text);
+    }
+    .badge.ok{ border-color: rgba(34,197,94,.35); }
+    .badge.warn{ border-color: rgba(245,158,11,.35); }
+    .badge.bad{ border-color: rgba(239,68,68,.35); }
+
+    .section-title{
+      display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+      margin: 2px 0 10px;
+    }
+    .section-title h2{ margin:0; font-size:16px; }
+    .section-title span{ color:var(--muted); font-size:12px; }
+
+    ul{ margin:10px 0 0; padding-left:18px; color:var(--text); }
+    li{ margin:8px 0; color: var(--text); }
+    .muted{ color:var(--muted); }
+
+    /* Honeypot */
+    .hp{ position:absolute; left:-9999px; top:-9999px; }
+
+    /* ====== CONTEXTO BRASIL (TOPO) ====== */
+    .context { margin-bottom: 16px; }
+    .kpis{
+      display:grid; gap:12px;
+      grid-template-columns:1fr;
+      margin-top:10px;
+    }
+    @media (min-width: 920px){
+      .kpis{ grid-template-columns:1fr 1fr 1fr 1fr; }
+    }
+    .kpi{
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+    .kpi .k{ color:var(--muted); font-size:12px; }
+    .kpi .v{ font-size:18px; font-weight:850; margin-top:6px; }
+    .kpi .t{ color:var(--muted); font-size:12px; margin-top:6px; }
+
+    .tablewrap{
+      overflow:auto;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.02);
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:720px;
+    }
+    th, td{
+      text-align:left;
+      padding:12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align:top;
+      font-size:13px;
+    }
+    th{ color:var(--text); font-weight:800; }
+    td{ color:var(--text); }
+    caption{
+      text-align:left;
+      padding:12px;
+      color:var(--text);
+      font-weight:850;
+      font-size:14px;
+    }
+    .note{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+    .hr{
+      height:1px;
+      background: rgba(255,255,255,.10);
+      margin:14px 0;
+      border:0;
+    }
+   /* ===== Float moderno (copyright) ===== */
+.floating-copyright{
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 9999;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 14px;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.72),
+    rgba(17, 24, 39, 0.45)
+  );
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 18px 45px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+
+  color: rgba(229,231,235,0.92);
+  font-size: 12px;
+  line-height: 1.2;
+  max-width: min(520px, calc(100vw - 32px));
+}
+
+.floating-copyright .dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, rgba(124,58,237,1), rgba(59,130,246,1));
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.15);
+  flex: 0 0 auto;
+}
+
+.floating-copyright .text{
+  display: grid;
+  gap: 2px;
+}
+
+.floating-copyright .text strong{
+  font-weight: 800;
+  color: rgba(255,255,255,0.95);
+}
+
+.floating-copyright .text span{
+  color: rgba(229,231,235,0.75);
+}
+
+/* para não cobrir conteúdo no rodapé */
+body{
+  padding-bottom: 86px;
+}
+
+@media (max-width: 520px){
+  .floating-copyright{
+    left: 12px;
+    bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+}
+
+
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Treine por Você: Bem-Estar Começa com uma Escolha</h1>
+
+    <!-- ===== CONTEXTO BRASIL (INÍCIO DO SITE) ===== -->
+    <div class="card context" id="contexto-brasil">
+      <div class="section-title">
+        <h2>Contexto Brasil — excesso de peso, obesidade e sedentarismo</h2>
+        <span class="muted">Dados para referência e comparação</span>
+      </div>
+
+      <!-- KPIs (Resumo executivo) -->
+      <div class="kpis">
+        <div class="kpi">
+          <div class="k">Excesso de peso (adultos)</div>
+          <div class="v">≈ 60%</div>
+          <div class="t">60% dos adultos brasileiros têm excesso de peso</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Obesidade (adultos)</div>
+          <div class="v">≈ 25%</div>
+          <div class="t">1 em cada 4 adultos é obeso</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Inatividade física</div>
+          <div class="v">≈ 47–50%</div>
+          <div class="t">Quase metade não atinge o recomendado</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Adolescentes inativos</div>
+          <div class="v">≈ 80–84%</div>
+          <div class="t">Grupo mais sedentário do país</div>
+        </div>
+      </div>
+
+      <hr class="hr" />
+
+      <!-- Tabela 1 -->
+      <div class="tablewrap">
+        <table>
+          <caption>📊 Tabela 1 — Excesso de peso e obesidade por faixa etária (Brasil)</caption>
+          <thead>
+            <tr>
+              <th>Faixa etária</th>
+              <th>Excesso de peso (%)</th>
+              <th>Obesidade (%)</th>
+              <th>Observação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>18–24 anos</td><td>~40%</td><td>~9–10%</td><td>Crescimento acelerado nos últimos anos</td></tr>
+            <tr><td>25–34 anos</td><td>~55%</td><td>~18%</td><td>Forte aumento pós-juventude</td></tr>
+            <tr><td>35–44 anos</td><td>~63%</td><td>~25%</td><td>Consolidação do excesso de peso</td></tr>
+            <tr><td>45–54 anos</td><td>~68–70%</td><td>~30%</td><td>Pico de obesidade</td></tr>
+            <tr><td>55–64 anos</td><td>~67%</td><td>~28%</td><td>Leve estabilização</td></tr>
+            <tr><td>65+ anos</td><td>~60%</td><td>~22%</td><td>Redução relativa</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <strong>Leitura-chave:</strong> pico de obesidade entre <strong>45–54 anos</strong>. Jovens têm menor obesidade, mas crescimento rápido.
+      </div>
+
+      <hr class="hr" />
+
+      <!-- Tabela 2 -->
+      <div class="tablewrap">
+        <table>
+          <caption>🌎 Tabela 2 — Obesidade por região do Brasil (adultos)</caption>
+          <thead>
+            <tr>
+              <th>Região</th>
+              <th>Obesidade (%)</th>
+              <th>Tendência</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Sul</td><td>~17–18%</td><td>Alta</td></tr>
+            <tr><td>Sudeste</td><td>~16–17%</td><td>Alta</td></tr>
+            <tr><td>Centro-Oeste</td><td>~15–16%</td><td>Moderada</td></tr>
+            <tr><td>Nordeste</td><td>~13–14%</td><td>Crescente</td></tr>
+            <tr><td>Norte</td><td>~11–12%</td><td>Menor, porém em alta</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <strong>Leitura-chave:</strong> <strong>Sul</strong> e <strong>Sudeste</strong> lideram; <strong>Norte</strong> e <strong>Nordeste</strong> crescem proporcionalmente mais.
+      </div>
+
+      <hr class="hr" />
+
+      <!-- Tabela 3 -->
+      <div class="tablewrap">
+        <table>
+          <caption>🏃‍♂️ Tabela 3 — Sedentarismo / inatividade física</caption>
+          <thead>
+            <tr>
+              <th>Indicador</th>
+              <th>Percentual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Não atinge nível recomendado de atividade física</td><td>~47–50%</td></tr>
+            <tr><td>Sedentarismo elevado (≥6h sentados/dia)</td><td>~30%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px;" class="tablewrap">
+        <table>
+          <caption>👶👨‍🦱 Sedentarismo por faixa etária</caption>
+          <thead>
+            <tr>
+              <th>Faixa etária</th>
+              <th>Inatividade física (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Adolescentes</td><td>até ~80–84%</td></tr>
+            <tr><td>Jovens adultos (18–24)</td><td>~55–60%</td></tr>
+            <tr><td>Adultos (25–59)</td><td>~45–50%</td></tr>
+            <tr><td>Idosos (60+)</td><td>~60–65%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <strong>Leitura-chave:</strong> adolescentes são o grupo mais sedentário; inatividade volta a crescer fortemente na terceira idade.
+        <br><strong>Tendência:</strong> crescimento contínuo até 2030–2045 (conforme seu resumo).
+      </div>
+    </div>
+    <!-- ===== /CONTEXTO BRASIL ===== -->
+
+    <div class="header">
+      <div class="title">
+        <h1>Relatório de Indicadores & Recomendações</h1>
+        <p>Preencha o formulário. Você receberá indicadores e sugestões personalizadas (orientação geral).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <form id="healthForm" novalidate>
+        <div class="hp">
+          <label>Deixe em branco:
+            <input type="text" name="website" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="grid">
+          <label>
+            Idade (anos) *
+            <input id="age" name="age" type="number" min="10" max="120" required placeholder="Ex.: 28" />
+            <span class="error" data-for="age"></span>
+          </label>
+
+          <label>
+            Objetivo principal *
+            <select id="goal" name="goal" required>
+              <option value="" selected>Selecione</option>
+              <option value="Perda de peso">Perda de peso</option>
+              <option value="Ganho de massa">Ganho de massa</option>
+              <option value="Resistência">Resistência</option>
+              <option value="Saúde geral">Saúde geral</option>
+            </select>
+            <span class="error" data-for="goal"></span>
+          </label>
+        </div>
+
+        <div class="grid">
+          <label>
+            Peso (kg) *
+            <input id="weight" name="weight" type="number" min="20" max="400" step="0.1" required placeholder="Ex.: 78.5" />
+            <span class="error" data-for="weight"></span>
+          </label>
+
+          <label>
+            Altura (m) *
+            <input id="height" name="height" type="number" min="1" max="2.5" step="0.01" required placeholder="Ex.: 1.75" />
+            <span class="error" data-for="height"></span>
+          </label>
+        </div>
+
+        <fieldset>
+          <legend>Nível de atividade atual</legend>
+          <div class="grid">
+            <label>
+              Quantos dias por semana você se exercita? *
+              <select id="days" name="days" required>
+                <option value="" selected>Selecione</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+              </select>
+              <span class="error" data-for="days"></span>
+            </label>
+
+            <label>
+              Tempo médio por sessão (min) *
+              <input id="minsPer" name="minsPer" type="number" min="5" max="300" required placeholder="Ex.: 40" />
+              <span class="error" data-for="minsPer"></span>
+            </label>
+          </div>
+
+          <div class="options">
+            <label class="opt">
+              <input type="radio" name="intensity" value="Leve" required />
+              <div><div class="t">Leve</div><div class="d">Caminhada leve, mobilidade, esforço baixo.</div></div>
+            </label>
+            <label class="opt">
+              <input type="radio" name="intensity" value="Moderado" />
+              <div><div class="t">Moderado</div><div class="d">Suor leve/moderado, respiração acelerada, ainda conversa.</div></div>
+            </label>
+            <label class="opt">
+              <input type="radio" name="intensity" value="Intenso" />
+              <div><div class="t">Intenso</div><div class="d">Alta intensidade, difícil manter conversa, esforço elevado.</div></div>
+            </label>
+          </div>
+          <span class="error" data-for="intensity"></span>
+        </fieldset>
+
+        <fieldset>
+          <legend>Limitações e saúde (para ajustar recomendações)</legend>
+          <div class="options">
+            <label class="opt">
+              <input type="checkbox" name="limitations" value="Dor/lesão recente" />
+              <div><div class="t">Dor ou lesão recente</div><div class="d">Ex.: joelho, lombar, ombro.</div></div>
+            </label>
+            <label class="opt">
+              <input type="checkbox" name="limitations" value="Condição médica" />
+              <div><div class="t">Condição médica relevante</div><div class="d">Ex.: hipertensão, diabetes, cardiopatias.</div></div>
+            </label>
+            <label class="opt">
+              <input type="checkbox" name="limitations" value="Sedentarismo prolongado" />
+              <div><div class="t">Sedentarismo prolongado</div><div class="d">Mais de 6 meses sem rotina de exercícios.</div></div>
+            </label>
+          </div>
+
+          <label style="margin-top:10px;">
+            Observações (opcional)
+            <textarea id="notes" name="notes" placeholder="Ex.: preferências, horários, limitações específicas..."></textarea>
+          </label>
+        </fieldset>
+
+        <div class="row">
+          <span class="help">Campos com * são obrigatórios. Resultado é orientação geral, não diagnóstico.</span>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn secondary" type="button" id="resetBtn">Limpar</button>
+            <button class="btn" type="submit" id="submitBtn">Gerar relatório</button>
+          </div>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+
+    <div id="results" class="results">
+      <div class="card">
+        <div class="section-title">
+          <h2>Indicadores</h2>
+          <span class="muted" id="stamp"></span>
+        </div>
+
+        <div class="cards">
+          <div class="metric">
+            <div class="k">IMC</div>
+            <div class="v" id="imcVal">—</div>
+            <div class="badge" id="imcBadge">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="k">Atividade (min/semana)</div>
+            <div class="v" id="minsWeekVal">—</div>
+            <div class="badge" id="omsBadge">—</div>
+          </div>
+
+          <div class="metric">
+            <div class="k">Score de prontidão</div>
+            <div class="v" id="readinessVal">—</div>
+            <div class="badge" id="readinessBadge">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <h2>Recomendações personalizadas</h2>
+          <span class="muted">Baseado nas suas respostas</span>
+        </div>
+
+        <div id="flagsBox" style="margin-bottom:12px;"></div>
+
+        <div class="grid">
+          <div>
+            <div class="section-title">
+              <h2>Plano semanal sugerido</h2>
+              <span class="muted">Ajustável</span>
+            </div>
+            <ul id="planList"></ul>
+          </div>
+
+          <div>
+            <div class="section-title">
+              <h2>Hábitos e foco</h2>
+              <span class="muted">Sem extremismos</span>
+            </div>
+            <ul id="habitsList"></ul>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;" class="muted">
+          Aviso: este relatório é educativo e não substitui avaliação profissional. Se você marcou condição médica/lesão,
+          considere orientação de médico/fisioterapeuta/educador físico.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ============ UTIL ============
+    const $ = (id) => document.getElementById(id);
+
+    const form = $("healthForm");
+    const statusEl = $("status");
+    const resultsEl = $("results");
+    const submitBtn = $("submitBtn");
+    const resetBtn = $("resetBtn");
+
+    function setStatus(msg, type){
+      statusEl.className = "status " + (type === "ok" ? "ok" : "bad");
+      statusEl.textContent = msg;
+      statusEl.style.display = "block";
+    }
+    function clearStatus(){
+      statusEl.style.display = "none";
+      statusEl.textContent = "";
+      statusEl.className = "status";
+    }
+
+    function showError(key, msg){
+      const el = document.querySelector(`.error[data-for="${key}"]`);
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add("show");
+    }
+    function clearError(key){
+      const el = document.querySelector(`.error[data-for="${key}"]`);
+      if (!el) return;
+      el.textContent = "";
+      el.classList.remove("show");
+    }
+
+    function getRadio(name){
+      const el = form.querySelector(`input[type="radio"][name="${name}"]:checked`);
+      return el ? el.value : "";
+    }
+    function getChecks(name){
+      return Array.from(form.querySelectorAll(`input[type="checkbox"][name="${name}"]:checked`)).map(x => x.value);
+    }
+
+    function round1(n){ return Math.round(n * 10) / 10; }
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    // ============ INDICADORES ============
+    function calcIMC(weightKg, heightM){
+      return weightKg / (heightM * heightM);
+    }
+
+    function imcCategory(imc){
+      if (imc < 18.5) return { label: "Abaixo do peso", tone: "warn" };
+      if (imc < 25)   return { label: "Peso adequado", tone: "ok" };
+      if (imc < 30)   return { label: "Sobrepeso", tone: "warn" };
+      if (imc < 35)   return { label: "Obesidade I", tone: "bad" };
+      if (imc < 40)   return { label: "Obesidade II", tone: "bad" };
+      return { label: "Obesidade III", tone: "bad" };
+    }
+
+    function activityMinutesPerWeek(days, minsPerSession){
+      return days * minsPerSession;
+    }
+
+    function omsStatus(minutesWeek, intensity){
+      // Conversão simples para "equivalente moderado"
+      let equiv = minutesWeek;
+      if (intensity === "Intenso") equiv = minutesWeek * 2;
+      if (intensity === "Leve")   equiv = minutesWeek * 0.6;
+
+      if (equiv >= 300) return { label: "Acima do recomendado", tone: "ok", equiv };
+      if (equiv >= 150) return { label: "Dentro do recomendado", tone: "ok", equiv };
+      if (equiv >= 75)  return { label: "Abaixo do ideal (quase lá)", tone: "warn", equiv };
+      return { label: "Sedentarismo elevado", tone: "bad", equiv };
+    }
+
+    function readinessScore(minutesWeek, intensity, limitations){
+      const oms = omsStatus(minutesWeek, intensity);
+      let base = 1;
+
+      if (oms.equiv >= 300) base = 9;
+      else if (oms.equiv >= 150) base = 7;
+      else if (oms.equiv >= 75) base = 5;
+      else base = 3;
+
+      if (intensity === "Intenso" && oms.equiv >= 150) base += 1;
+      if (intensity === "Leve" && oms.equiv < 150) base -= 0.5;
+
+      if (limitations.includes("Condição médica")) base -= 2;
+      if (limitations.includes("Dor/lesão recente")) base -= 1.5;
+      if (limitations.includes("Sedentarismo prolongado")) base -= 1;
+
+      base = clamp(base, 1, 10);
+      return Math.round(base);
+    }
+
+    // ============ RECOMENDAÇÕES ============
+    function buildRecommendations(input){
+      const {
+        age, goal, weight, height, days, minsPer, intensity, limitations, notes
+      } = input;
+
+      const imc = calcIMC(weight, height);
+      const imcCat = imcCategory(imc);
+      const minWeek = activityMinutesPerWeek(days, minsPer);
+      const oms = omsStatus(minWeek, intensity);
+      const score = readinessScore(minWeek, intensity, limitations);
+
+      const flags = [];
+      if (limitations.includes("Condição médica")) {
+        flags.push({ tone:"warn", text:"Você marcou condição médica: recomenda-se validação com profissional antes de aumentar intensidade." });
+      }
+      if (limitations.includes("Dor/lesão recente")) {
+        flags.push({ tone:"warn", text:"Você marcou dor/lesão recente: priorize baixo impacto e progressão gradual; considere fisioterapia." });
+      }
+      if (age < 16) {
+        flags.push({ tone:"warn", text:"Para menores de idade, recomenda-se orientação profissional e foco em técnica, segurança e hábitos." });
+      }
+      if (imc >= 35) {
+        flags.push({ tone:"warn", text:"IMC elevado: priorize consistência, baixo impacto e acompanhamento profissional para segurança." });
+      }
+
+      const plan = [];
+      const habits = [];
+      const cautious = limitations.length > 0 || score <= 4 || oms.tone === "bad";
+
+      if (cautious) {
+        plan.push("Comece com 3 sessões/semana de 20–30 min (caminhada, bike leve, mobilidade), por 2 semanas.");
+        plan.push("Aumente 10% no volume semanal a cada semana (tempo total), se estiver confortável.");
+        plan.push("Inclua 2 dias/semana de fortalecimento leve (corpo inteiro): agachamento assistido, remada elástica, ponte, prancha curta.");
+      } else {
+        if (goal === "Perda de peso") {
+          plan.push("4–5 dias/semana: 30–45 min de cardio moderado (caminhada rápida, bike, elíptico).");
+          plan.push("2–3 dias/semana: treino de força (corpo inteiro) para preservar massa magra.");
+          plan.push("1 dia opcional: intervalos leves (ex.: 6x 1 min mais forte / 2 min leve) se já estiver adaptado.");
+        } else if (goal === "Ganho de massa") {
+          plan.push("3–5 dias/semana: treino de força progressivo (foco em grandes grupos musculares).");
+          plan.push("2 dias/semana: cardio leve/moderado 20–30 min para condicionamento e recuperação.");
+          plan.push("Meta: manter consistência e progressão (carga/reps) semanalmente.");
+        } else if (goal === "Resistência") {
+          plan.push("4–6 dias/semana: cardio estruturado (2 dias moderado + 1 dia longo + 1 dia intervalado).");
+          plan.push("2 dias/semana: força funcional (core, posterior, quadril) para prevenção de lesões.");
+          plan.push("Aumente volume com progressão gradual (5–10%/semana).");
+        } else {
+          plan.push("4–5 dias/semana: 30–40 min atividade moderada (caminhada rápida, natação, bike).");
+          plan.push("2 dias/semana: força (corpo inteiro) e mobilidade.");
+          plan.push("Meta: ficar entre 150–300 min/semana (equivalente moderado).");
+        }
+      }
+
+      if (oms.equiv < 150) habits.push("Priorize consistência: 150 min/semana é uma boa meta inicial (progredindo aos poucos).");
+      else habits.push("Mantenha a consistência e varie estímulos (cardio + força) para resultados e saúde geral.");
+
+      if (imcCat.label === "Abaixo do peso") {
+        habits.push("Se o objetivo for desempenho/saúde, foque em força e alimentação suficiente; considere avaliação nutricional.");
+      } else if (imcCat.label === "Sobrepeso" || imcCat.tone !== "ok") {
+        habits.push("Foque em déficit calórico moderado e aumento de movimento diário (passos), evitando mudanças extremas.");
+      } else {
+        habits.push("Para manutenção, foque em rotina sustentável: treino + sono + alimentação equilibrada.");
+      }
+
+      habits.push("Sono: tente manter rotina e qualidade; recuperação influencia diretamente desempenho e aderência.");
+      habits.push("Hidratação: mantenha ingestão regular ao longo do dia, especialmente em dias de treino.");
+
+      if (intensity === "Intenso" && (limitations.length > 0 || score <= 6)) {
+        habits.push("Se você faz treino intenso, garanta dias leves e técnica adequada para reduzir risco de lesão.");
+      } else if (intensity === "Leve" && goal !== "Saúde geral") {
+        habits.push("Se o objetivo for performance/resultado, considere evoluir para moderado gradualmente.");
+      }
+
+      if (notes && notes.trim().length > 0) {
+        habits.push("Observação: personalize ainda mais o plano conforme suas preferências e limitações descritas.");
+      }
+
+      return { imc, imcCat, minWeek, oms, score, plan, habits, flags };
+    }
+
+    // ============ VALIDAÇÃO ============
+    function validate(){
+      clearStatus();
+      let ok = true;
+
+      const age = Number($("age").value);
+      const goal = $("goal").value;
+      const weight = Number($("weight").value);
+      const height = Number($("height").value);
+      const days = $("days").value === "" ? NaN : Number($("days").value);
+      const minsPer = Number($("minsPer").value);
+      const intensity = getRadio("intensity");
+
+      ["age","goal","weight","height","days","minsPer","intensity"].forEach(k => clearError(k));
+
+      if (!(age >= 10 && age <= 120)) { showError("age","Informe uma idade válida (10–120)."); ok = false; }
+      if (!goal) { showError("goal","Selecione um objetivo."); ok = false; }
+      if (!(weight > 0)) { showError("weight","Informe um peso válido."); ok = false; }
+      if (!(height >= 1 && height <= 2.5)) { showError("height","Informe uma altura válida em metros (ex.: 1.75)."); ok = false; }
+      if (!(days >= 0 && days <= 7)) { showError("days","Selecione dias por semana."); ok = false; }
+      if (!(minsPer >= 5 && minsPer <= 300)) { showError("minsPer","Informe minutos por sessão (5–300)."); ok = false; }
+      if (!intensity) { showError("intensity","Selecione a intensidade."); ok = false; }
+
+      return ok;
+    }
+
+    // ============ RENDER ============
+    function setBadge(el, text, tone){
+      el.textContent = text;
+      el.className = "badge " + (tone || "");
+    }
+
+    function renderReport(out){
+      $("imcVal").textContent = round1(out.imc).toFixed(1);
+      setBadge($("imcBadge"), out.imcCat.label, out.imcCat.tone);
+
+      $("minsWeekVal").textContent = String(out.minWeek);
+      const omsTxt = `${out.oms.label} (equiv.: ${Math.round(out.oms.equiv)} min/mod.)`;
+      setBadge($("omsBadge"), omsTxt, out.oms.tone);
+
+      $("readinessVal").textContent = String(out.score) + "/10";
+      const rTone = out.score >= 7 ? "ok" : (out.score >= 5 ? "warn" : "bad");
+      const rLabel = out.score >= 7 ? "Boa prontidão" : (out.score >= 5 ? "Prontidão moderada" : "Comece com cautela");
+      setBadge($("readinessBadge"), rLabel, rTone);
+
+      const now = new Date();
+      $("stamp").textContent = `Gerado em ${now.toLocaleString("pt-BR")}`;
+
+      const flagsBox = $("flagsBox");
+      flagsBox.innerHTML = "";
+      if (out.flags.length > 0) {
+        out.flags.forEach(f => {
+          const div = document.createElement("div");
+          div.className = "badge " + (f.tone || "");
+          div.style.marginBottom = "8px";
+          div.textContent = f.text;
+          flagsBox.appendChild(div);
+        });
+      }
+
+      const planUl = $("planList");
+      planUl.innerHTML = "";
+      out.plan.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        planUl.appendChild(li);
+      });
+
+      const habitsUl = $("habitsList");
+      habitsUl.innerHTML = "";
+      out.habits.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        habitsUl.appendChild(li);
+      });
+
+      resultsEl.style.display = "grid";
+      resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // ============ EVENTS ============
+    resetBtn.addEventListener("click", () => {
+      form.reset();
+      clearStatus();
+      resultsEl.style.display = "none";
+      ["age","goal","weight","height","days","minsPer","intensity"].forEach(k => clearError(k));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const hp = form.elements["website"]?.value?.trim();
+      if (hp) { setStatus("Envio bloqueado (anti-spam).", "bad"); return; }
+
+      if (!validate()) {
+        setStatus("Revise os campos destacados e tente novamente.", "bad");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Gerando...";
+
+      const input = {
+        age: Number($("age").value),
+        goal: $("goal").value,
+        weight: Number($("weight").value),
+        height: Number($("height").value),
+        days: Number($("days").value),
+        minsPer: Number($("minsPer").value),
+        intensity: getRadio("intensity"),
+        limitations: getChecks("limitations"),
+        notes: $("notes").value || ""
+      };
+
+      try {
+        const out = buildRecommendations(input);
+        renderReport(out);
+        setStatus("Relatório gerado com sucesso.", "ok");
+      } catch (err) {
+        console.error(err);
+        setStatus("Falha ao gerar relatório. Verifique os dados e tente novamente.", "bad");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Gerar relatório";
+      }
+    });
+  </script>
+  <!-- Cole antes do </body> -->
+<div class="floating-copyright" role="contentinfo" aria-label="Direitos autorais">
+  <div class="dot" aria-hidden="true"></div>
+  <div class="text">
+    <strong>Direitos reservados</strong>
+    <span>a Felipe dos Santos Garcia e Rafael Antunes de Souza</span>
+  </div>
+</div>
+
+
+</body>
+</html>
